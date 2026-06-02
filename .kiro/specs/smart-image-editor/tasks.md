@@ -142,7 +142,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - _Requirements: 4.4, 4.5_
 
 
-- [ ] 7. Image generation API route and R2 storage
+- [x] 7. Image generation API route and R2 storage
   - [x] 7.1 Implement `lib/r2.ts` with typed helpers: `putObject`, `getObject`, `deleteObject`, `listObjects` wrapping the S3-compatible R2 client
     - Key conventions: `sessions/{sessionId}/history/{entryId}/image.png`, `thumbnail.jpg`, `metadata.json`, `session.json`
     - `putObject` retries once after 500 ms on failure; `getObject` (for history restore) returns null on failure with no retry
@@ -151,7 +151,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
   - [x] 7.2 Implement `lib/thumbnail.ts` using `sharp` to resize source PNG to 160×160 JPEG server-side
     - _Requirements: 7.3_
 
-  - [-] 7.3 Implement `app/api/generate/route.ts` (`POST /api/generate`)
+  - [x] 7.3 Implement `app/api/generate/route.ts` (`POST /api/generate`)
     - Validate `finalPrompt` ≤ 4000 chars and `mode` is `"fast"` or `"quality"`; reject 400 otherwise
     - Call `mapModeToModel()` to select FLUX model; call Cloudflare Workers AI with 30 s timeout; retry once after 2 s
     - On success: call `computeStyleDNA(finalPrompt)` via Groq (retry 1×, 1 s delay); use `fallbackStyleDNA()` if Groq fails
@@ -241,22 +241,22 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [ ] 12. Editor context, step machine, and root layout
-  - [~] 12.1 Implement `lib/EditorContext.tsx` with React context providing the step machine state
+- [x] 12. Editor context, step machine, and root layout
+  - [x] 12.1 Implement `lib/EditorContext.tsx` with React context providing the step machine state
     - Steps: `IDLE → ANALYZING → CLARIFYING → ENHANCING → REVIEWING → GENERATING → DONE`
     - State includes: `currentStep`, `casualPrompt`, `referenceFiles`, `intentRecord`, `clarifyingQuestions`, `clarificationAnswers`, `enhancedPrompt`, `finalPrompt`, `generationMode`, `currentImage`, `editHistory`, `inpaintState`, `sessionId`
     - Expose actions: `setStep()`, `setPrompt()`, `setFiles()`, `setIntentRecord()`, `setQuestions()`, `setAnswers()`, `setEnhancedPrompt()`, `setMode()`, `appendHistory()`, `restoreFromHistory()`, `setInpaintState()`
     - _Requirements: 7.4, 9.3_
 
-  - [~] 12.2 Implement `app/layout.tsx` that bootstraps a session on mount via `POST /api/session`, stores `sessionId`, and loads Edit_History via `GET /api/history`
+  - [x] 12.2 Implement `app/layout.tsx` that bootstraps a session on mount via `POST /api/session`, stores `sessionId`, and loads Edit_History via `GET /api/history`
     - _Requirements: 9.1, 9.2, 9.3_
 
-  - [~] 12.3 Implement `app/editor/page.tsx` as the main editor shell rendering the step-appropriate panel from `EditorContext`
+  - [x] 12.3 Implement `app/editor/page.tsx` as the main editor shell rendering the step-appropriate panel from `EditorContext`
     - _Requirements: 9.3_
 
 
-- [ ] 13. PromptInput component
-  - [~] 13.1 Implement `app/components/PromptInput/PromptInput.tsx`
+- [x] 13. PromptInput component
+  - [x] 13.1 Implement `app/components/PromptInput/PromptInput.tsx`
     - `<textarea>` wired to `EditorContext` `casualPrompt`; enforces `maxLength=2000`; shows `CharCounter` turning red at limit
     - File drop zone accepts JPEG, PNG, WebP, PDF, TXT; validates MIME and size client-side before accepting
     - "Submit" button disabled until prompt has at least 1 non-whitespace character
@@ -264,38 +264,38 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - Calls `POST /api/analyze` with `AbortController` 20 s timeout on submit
     - _Requirements: 1.1, 1.6_
 
-  - [~] 13.2 Implement `app/components/PromptInput/FilePreview.tsx`
+  - [x] 13.2 Implement `app/components/PromptInput/FilePreview.tsx`
     - Image files: display thumbnail ≥ 80×80 px
     - Document files: display filename + file type chip
     - Reject with inline `ErrorBanner`: >10 MB shows file size + limit message; unsupported format lists allowed formats
     - _Requirements: 1.3, 1.4, 1.5_
 
 
-- [ ] 14. ClarificationPanel component
-  - [~] 14.1 Implement `app/components/ClarificationPanel/QuestionCard.tsx`
+- [x] 14. ClarificationPanel component
+  - [x] 14.1 Implement `app/components/ClarificationPanel/QuestionCard.tsx`
     - Renders one `ClarifyingQuestion` as radio button options (3–5 choices) plus an "Other" toggle
     - When "Other" is selected, show a text input capped at 200 chars; disable "Submit Answers" if "Other" field is empty
     - _Requirements: 3.4, 3.5_
 
-  - [~] 14.2 Implement `app/components/ClarificationPanel/ClarificationPanel.tsx`
+  - [x] 14.2 Implement `app/components/ClarificationPanel/ClarificationPanel.tsx`
     - Renders 2–3 `QuestionCard` components
     - "Submit Answers" button disabled until every card has a selection (including non-empty "Other" values)
     - On submit: calls `POST /api/enhance` with `AbortController` 20 s timeout; advances step to `ENHANCING`
     - _Requirements: 3.3, 3.4_
 
 
-- [ ] 15. PromptReview component
-  - [~] 15.1 Implement `app/components/PromptReview/PromptReview.tsx`
+- [x] 15. PromptReview component
+  - [x] 15.1 Implement `app/components/PromptReview/PromptReview.tsx`
     - Read-only field showing original `casualPrompt`; editable textarea for `enhancedPrompt` (max 4000 chars with `CharCounter`)
     - "Approve & Generate" button enabled only when `enhancedPrompt.trim().length > 0` AND `!isRegenerating`
     - On approve: passes the current value of the editable field as `finalPrompt` to `POST /api/generate` (Property 12)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6_
 
-  - [~] 15.2 Implement `app/components/PromptReview/ModeSelector.tsx`
+  - [x] 15.2 Implement `app/components/PromptReview/ModeSelector.tsx`
     - Radio toggle between "Fast" (default, FLUX.1-schnell) and "Quality" (FLUX.1-dev) with descriptive labels per requirements
     - _Requirements: 6.2_
 
-  - [~] 15.3 Implement `app/components/PromptReview/RegenerateButton.tsx`
+  - [x] 15.3 Implement `app/components/PromptReview/RegenerateButton.tsx`
     - On click: sets `isRegenerating = true`, clears `enhancedPrompt`, disables "Approve & Generate", re-calls `POST /api/enhance` with same intent + answers, re-enables on response
     - _Requirements: 5.5_
 
@@ -307,13 +307,13 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - _Requirements: 5.1, 5.2, 5.3, 5.5_
 
 
-- [ ] 16. ImageViewer and EditHistory components
-  - [~] 16.1 Implement `app/components/ImageViewer/ImageViewer.tsx` and `GenerationOverlay.tsx`
+- [x] 16. ImageViewer and EditHistory components
+  - [x] 16.1 Implement `app/components/ImageViewer/ImageViewer.tsx` and `GenerationOverlay.tsx`
     - Display generated PNG image with overlay controls ("Edit a specific area", "New Edit from this image")
     - Show `LoadingSpinner` during generation; show timeout error at 60 s with retry option
     - _Requirements: 6.5_
 
-  - [~] 16.2 Implement `app/components/EditHistory/EditHistoryPanel.tsx` and `HistoryThumb.tsx`
+  - [x] 16.2 Implement `app/components/EditHistory/EditHistoryPanel.tsx` and `HistoryThumb.tsx`
     - Horizontal thumbnail timeline in chronological order (oldest → newest); each thumbnail is 160×160 px
     - Clicking a thumbnail restores `casualPrompt`, `enhancedPrompt`, `styleDNA` into `EditorContext` (Property 18)
     - _Requirements: 7.3, 7.4, 7.5_
@@ -337,15 +337,15 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - _Requirements: 8.1, 8.4, 8.5, 8.9, 8.10_
 
 
-- [ ] 18. Shared components and error display
-  - [~] 18.1 Implement `app/components/shared/ErrorBanner.tsx`, `LoadingSpinner.tsx`, and `CharCounter.tsx`
+- [x] 18. Shared components and error display
+  - [x] 18.1 Implement `app/components/shared/ErrorBanner.tsx`, `LoadingSpinner.tsx`, and `CharCounter.tsx`
     - `ErrorBanner`: compact (inline, beneath field) and full-width (step-level) variants
     - `CharCounter`: shows remaining characters; turns red at limit
     - Add a root error boundary in `app/layout.tsx` for fatal errors (e.g., session creation failure) with a "Reload" button
     - _Requirements: 1.1, 1.4, 1.5, 10.4_
 
-- [ ] 19. Pipeline wiring and pipeline ordering tests
-  - [~] 19.1 Wire all pipeline steps in `app/editor/page.tsx` and `EditorContext`
+- [x] 19. Pipeline wiring and pipeline ordering tests
+  - [x] 19.1 Wire all pipeline steps in `app/editor/page.tsx` and `EditorContext`
     - Ensure analyze runs before enhance and review runs before generate; step machine enforces order
     - When `hasAmbiguities === false` from `/api/analyze`, skip `CLARIFYING` step and advance directly to `ENHANCING`
     - When User selects a HistoryEntry for new edit, pre-populate `EditorContext` with that entry's `styleDNA`, `casualPrompt`, `enhancedPrompt`; feed `styleDNA` to `/api/enhance` on next submission

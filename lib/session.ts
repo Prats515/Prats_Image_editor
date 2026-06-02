@@ -72,14 +72,19 @@ export async function updateSessionActivity(sessionId: string): Promise<void> {
     return;
   }
 
-  const updated: Session = {
+  await saveSession({
     ...session,
     lastActiveAt: new Date().toISOString(),
-  };
+  });
+}
 
+/**
+ * Persist an updated session record to R2.
+ */
+export async function saveSession(session: Session): Promise<void> {
   await putObject(
-    sessionKey(sessionId),
-    JSON.stringify(updated),
+    sessionKey(session.sessionId),
+    JSON.stringify(session),
     "application/json"
   );
 }
