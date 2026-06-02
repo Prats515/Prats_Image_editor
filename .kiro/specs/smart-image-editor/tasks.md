@@ -27,7 +27,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - `mapModeToModel(mode: "fast" | "quality"): string` — returns correct FLUX model ID (Property 14)
     - _Requirements: 1.1, 1.2, 1.4, 1.5, 3.5, 5.6, 8.3, 8.5, 6.3, 6.4_
 
-  - [ ]* 2.2 Write property tests for prompt and file validators
+  - [x]* 2.2 Write property tests for prompt and file validators
     - **Property 1: Casual Prompt Length Enforcement** — `fc.string()` covering empty, length 1, length 2000, length 2001
     - **Property 2: Reference File Count Enforcement** — `fc.array()` with sizes 0, 1–5, 6+
     - **Property 3: Reference File Size and Format Validation** — arbitrary size + MIME combos
@@ -35,14 +35,14 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - File: `__tests__/validation/promptInput.prop.ts`, `__tests__/validation/referenceFiles.prop.ts`
     - _Requirements: 1.1, 1.2, 1.4, 1.5, 5.6_
 
-  - [ ]* 2.3 Write property tests for answer and inpainting validators
+  - [x]* 2.3 Write property tests for answer and inpainting validators
     - **Property 9: "Other" Field Validation** — empty string, 1-char, 200-char, 201-char
     - **Property 20: Inpainting Brush Size Range Enforcement** — integers at 4, 5, 100, 101
     - **Property 22: Inpainting Request Body Completeness** — arbitrary objects with missing/invalid fields
     - File: `__tests__/clarification/questions.prop.ts`, `__tests__/inpainting/maskOps.prop.ts`
     - _Requirements: 3.5, 8.3, 8.5_
 
-  - [ ]* 2.4 Write property test for generation mode mapping
+  - [x]* 2.4 Write property test for generation mode mapping
     - **Property 14: Generation Mode to Model Mapping** — only `"fast"` and `"quality"` map to valid models; any other string returns 400
     - File: `__tests__/generation/modeMapping.prop.ts`
     - _Requirements: 6.3, 6.4_
@@ -59,7 +59,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - If cookie valid → `getSession()`, load entry count from `session.json`, return `{ sessionId, isNew: false, historyCount }`
     - _Requirements: 9.1, 9.3, 9.4_
 
-  - [ ]* 3.3 Write unit tests for session route
+  - [x]* 3.3 Write unit tests for session route
     - Test new session creation, session restoration, expired session creates new session, cookie attributes
     - File: `__tests__/api/session.test.ts`
     - _Requirements: 9.1–9.7_
@@ -79,14 +79,14 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - Return `{ intentRecord, hasAmbiguities }` as JSON
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 10.1, 10.2, 10.3, 10.5_
 
-  - [ ]* 4.3 Write property tests for IntentRecord structure
+  - [x]* 4.3 Write property tests for IntentRecord structure
     - **Property 4: IntentRecord Structural Completeness** — for arbitrary prompts, all five keys always present, value is string or null
     - **Property 5: Reference Input Attribute Precedence** — when both prompt and reference have non-null values, reference wins
     - **Property 6: No-Primary-Subject Pipeline Guard** — when `primarySubject` is null, returns error, never calls downstream
     - File: `__tests__/analysis/intentRecord.prop.ts`
     - _Requirements: 2.2, 2.3, 2.5_
 
-  - [ ]* 4.4 Write property tests for API validation and payload guard
+  - [x]* 4.4 Write property tests for API validation and payload guard
     - **Property 25: API Input Validation Returns 400 with Field Details** — arbitrary bad inputs return 400 + field name
     - **Property 27: Payload Size Guard Returns 413** — payloads > 15 MB return 413 before any external call
     - File: `__tests__/api/validation.prop.ts`
@@ -101,13 +101,13 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - Return `{ questions: ClarifyingQuestion[] }`
     - _Requirements: 3.1, 3.4, 3.6, 10.1, 10.2_
 
-  - [ ]* 5.2 Write property tests for clarifying questions
+  - [x]* 5.2 Write property tests for clarifying questions
     - **Property 7: Clarifying Question Count and Attribute Uniqueness** — length 2 or 3, all attributes distinct
     - **Property 8: Clarifying Question Option Count** — every question's `options` array has 3–5 items
     - File: `__tests__/clarification/questions.prop.ts`
     - _Requirements: 3.1, 3.4, 3.6_
 
-  - [ ]* 5.3 Write unit tests for clarification skip logic
+  - [x]* 5.3 Write unit tests for clarification skip logic
     - Test that when `hasAmbiguities === false`, `/api/clarify` is never called and pipeline proceeds to enhance
     - Test that "Approve" button is disabled until all question cards have a selection
     - File: `__tests__/pipeline/clarificationSkip.test.ts`
@@ -128,14 +128,14 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - Return `{ enhancedPrompt: string }`
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 8.8, 10.1, 10.2_
 
-  - [ ]* 6.3 Write property tests for prompt enhancement
+  - [x]* 6.3 Write property tests for prompt enhancement
     - **Property 10: Enhanced Prompt Length Bounds** — output always 50–500 chars
     - **Property 11: StyleDNA Injection in Enhanced Prompt** — when StyleDNA present, all four attribute values appear in the system prompt string
     - **Property 12: Approved Prompt Is Final Prompt** — the value typed in review field equals `finalPrompt` in POST body
     - File: `__tests__/enhancement/promptEnhancer.prop.ts`
     - _Requirements: 4.2, 4.3, 7.2, 5.4_
 
-  - [ ]* 6.4 Write unit tests for content policy and retry logic
+  - [x]* 6.4 Write unit tests for content policy and retry logic
     - Test Groq 451 content policy violation returns error message, blocks generation
     - Test retry once after 2 s then failure preserves clarification answers
     - File: `__tests__/api/contentPolicy.test.ts`, `__tests__/api/retryLogic.test.ts`
@@ -161,7 +161,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - Return `{ historyEntryId, imageUrl, styleDNA }` with signed R2 URL (24 h expiry)
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 7.1, 7.7, 10.1, 10.2_
 
-  - [ ]* 7.4 Write property tests for history operations and metadata round-trip
+  - [x]* 7.4 Write property tests for history operations and metadata round-trip
     - **Property 15: History Entry Append Invariant** — count increases by exactly 1, new entry is last chronologically
     - **Property 16: Generated Metadata Round-Trip Completeness** — `metadata.json` contains exact `finalPrompt` as `enhancedPrompt`, StyleDNA has 3–8 `dominantColors`, all string fields non-empty
     - **Property 17: Edit History Chronological Sort** — sort function always returns entries in ascending `createdAt` order
@@ -169,14 +169,14 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - File: `__tests__/history/historyOps.prop.ts`, `__tests__/generation/metadata.prop.ts`
     - _Requirements: 6.6, 6.8, 7.1, 7.3, 7.7_
 
-  - [ ]* 7.5 Write unit tests for generation timeout and error handling
+  - [x]* 7.5 Write unit tests for generation timeout and error handling
     - Test 60 s UI timeout shows error with retry option (client-side AbortController 65 s)
     - Test Cloudflare Workers AI error triggers one retry, then shows "Try Again" without clearing prompt review
     - File: `__tests__/components/generationTimeout.test.ts`, `__tests__/api/retryLogic.test.ts`
     - _Requirements: 6.5, 6.7_
 
 
-- [ ] 8. Edit history API route
+- [x] 8. Edit history API route
   - [x] 8.1 Implement `app/api/history/route.ts` (`GET /api/history`)
     - Read `sessionId` from cookie; list all `sessions/{sessionId}/history/*/metadata.json` objects from R2
     - Parse each into `HistoryEntry`; generate signed R2 URLs (24 h) for `imageUrl` and thumbnail
@@ -184,7 +184,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - On R2 read failure, return empty array (no retry per design)
     - _Requirements: 7.3, 7.4, 7.5, 9.3_
 
-  - [ ]* 8.2 Write property test for history context restoration
+  - [x]* 8.2 Write property test for history context restoration
     - **Property 18: History Context Restoration Round-Trip** — selecting any HistoryEntry restores `casualPrompt`, `enhancedPrompt`, `styleDNA` exactly, no transformation
     - File: `__tests__/history/historyOps.prop.ts`
     - _Requirements: 7.4_
@@ -200,18 +200,18 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - Return `{ historyEntryId, imageUrl, styleDNA }`
     - _Requirements: 8.5, 8.9, 10.1, 10.2_
 
-  - [ ]* 9.2 Write property test for inpainting prompt scope
+  - [x]* 9.2 Write property test for inpainting prompt scope
     - **Property 23: Inpainting Prompts Are Scope-Limited** — system prompts for both analyzer and enhancer contain scope-limiting language; final Enhanced_Prompt states only masked region modified, content outside mask preserved
     - File: `__tests__/inpainting/promptScope.prop.ts`
     - _Requirements: 8.6, 8.7, 8.8_
 
-  - [ ]* 9.3 Write property tests for mask operations
+  - [x]* 9.3 Write property tests for mask operations
     - **Property 21: Clear Mask Produces All-Transparent Canvas** — after `clearMask()`, every pixel alpha = 0 regardless of initial state
     - **Property 24: Small Mask Warning Threshold** — warning triggers if and only if `maskCoverage < 0.01`
     - File: `__tests__/inpainting/maskOps.prop.ts`
     - _Requirements: 8.4, 8.10_
 
-  - [ ]* 9.4 Write unit tests for inpainting tool behaviors
+  - [x]* 9.4 Write unit tests for inpainting tool behaviors
     - Test "Edit a specific area" option activates InpaintingTool; brush pointer events produce mask paint; "Clear Mask" resets canvas
     - Test small-mask warning dialog: confirm proceeds, decline returns to tool with mask intact
     - File: `__tests__/components/inpaintingTool.test.ts`
@@ -226,12 +226,12 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - All routes use `Content-Type: application/json` on every response (Property 26)
     - _Requirements: 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ]* 10.2 Write property test for JSON response guarantee
+  - [x]* 10.2 Write property test for JSON response guarantee
     - **Property 26: All API Responses Are Valid JSON** — for any input (valid or invalid) to any route, response body is parseable JSON with correct Content-Type
     - File: `__tests__/api/validation.prop.ts`
     - _Requirements: 10.3_
 
-  - [ ]* 10.3 Write unit tests for error sanitization and timeout
+  - [x]* 10.3 Write unit tests for error sanitization and timeout
     - Test 500 response contains no stack trace, file path, or env var values
     - Test 504 returned after 30 s external timeout
     - File: `__tests__/api/errorSanitization.test.ts`, `__tests__/api/timeoutHandling.test.ts`
@@ -299,7 +299,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - On click: sets `isRegenerating = true`, clears `enhancedPrompt`, disables "Approve & Generate", re-calls `POST /api/enhance` with same intent + answers, re-enables on response
     - _Requirements: 5.5_
 
-  - [ ]* 15.4 Write unit tests for PromptReview component
+  - [x]* 15.4 Write unit tests for PromptReview component
     - Test "Approve & Generate" is disabled when enhancedPrompt is empty or isRegenerating is true
     - Test "Regenerate" clears prompt, disables approve button, re-enables on response
     - Test edited text in review field is the value sent as `finalPrompt`
@@ -351,7 +351,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - When User selects a HistoryEntry for new edit, pre-populate `EditorContext` with that entry's `styleDNA`, `casualPrompt`, `enhancedPrompt`; feed `styleDNA` to `/api/enhance` on next submission
     - _Requirements: 2.1, 2.4, 3.2, 5.1, 7.2, 7.4_
 
-  - [ ]* 19.2 Write unit tests for pipeline ordering
+  - [x]* 19.2 Write unit tests for pipeline ordering
     - Test analyze is called before enhance; review gate prevents generate without approval
     - Test clarification is skipped when `hasAmbiguities === false`
     - File: `__tests__/pipeline/ordering.test.ts`, `__tests__/pipeline/clarificationSkip.test.ts`
