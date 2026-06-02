@@ -7,8 +7,8 @@
  * signed URLs for the image keys.
  */
 
-import { getSession } from "../../../lib/session-memory";
-import { loadHistoryForSession } from "../../../lib/historyWrite-memory";
+import { getSession } from "../../../lib/session";
+import { loadHistoryForSession } from "../../../lib/historyWrite";
 import {
   handleUnexpectedError,
   jsonResponse,

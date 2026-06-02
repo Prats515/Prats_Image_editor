@@ -7,9 +7,9 @@
  */
 
 import { z } from "zod";
-import { inpaintImage, CloudflareAiError } from "../../../lib/cloudflareAi";
+import { inpaintImage, HuggingFaceAiError } from "../../../lib/cloudflareAi";
 import { computeStyleDNA } from "../../../lib/styleDna";
-import { writeHistoryEntry } from "../../../lib/historyWrite-memory";
+import { writeHistoryEntry } from "../../../lib/historyWrite";
 import { getObject } from "../../../lib/r2";
 import {
   getSession,
@@ -208,7 +208,7 @@ export async function POST(request: Request): Promise<Response> {
         mode
       );
     } catch (err) {
-      if (err instanceof CloudflareAiError) {
+      if (err instanceof HuggingFaceAiError) {
         return jsonResponse(
           {
             error: "inpaint_failed",

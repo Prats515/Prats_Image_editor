@@ -7,7 +7,7 @@
  */
 
 import { deleteObject, generateSignedUrl, getObject, listObjects, putObject } from "./r2";
-import { getSession, saveSession } from "./session-memory";
+import { getSession, saveSession } from "./session";
 import type { HistoryEntry, StyleDNA } from "./types";
 import { generateThumbnail } from "./thumbnail";
 
@@ -168,4 +168,31 @@ export async function writeHistoryEntry(
     imageUrl,
     styleDNA,
   };
+}
+
+
+/**
+ * Load all history entries for a session from R2.
+ */
+export async function loadHistoryForSession(
+  sessionId: string
+): Promise<HistoryEntry[]> {
+  const prefix = `sessions/${sessionId}/history/`;
+  const keys = await listObjects(prefix);
+  const metadataKeys = keys.filter((k) => k.endsWith("/metadata.json"));
+
+  const entries: HistoryEntry[] = [];
+  for (const key of metadataKeys) {
+    const entry = await readMetadataEntry(sessionId, key);
+    if (entry !== null) {
+      entries.push(entry);
+    }
+  }
+
+  // Sort by creation date, newest first
+  entries.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  return entries;
 }

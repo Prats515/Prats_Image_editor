@@ -1,16 +1,16 @@
 /**
  * POST /api/generate
  *
- * Generates an image from an approved prompt via Cloudflare Workers AI (FLUX),
- * computes StyleDNA, stores assets in R2, and returns a signed image URL.
+ * Generates an image from an approved prompt via Hugging Face Inference API (FLUX),
+ * computes StyleDNA, stores assets in memory, and returns image data.
  *
  * Requirements: 6.1–6.8, 7.1, 7.7, 9.2, 10.1, 10.2
  */
 
 import { z } from "zod";
-import { generateImage, CloudflareAiError } from "../../../lib/cloudflareAi";
+import { generateImage, HuggingFaceAiError } from "../../../lib/cloudflareAi";
 import { computeStyleDNA } from "../../../lib/styleDna";
-import { writeHistoryEntry } from "../../../lib/historyWrite-memory";
+import { writeHistoryEntry } from "../../../lib/historyWrite";
 import { getSession, updateSessionActivity, getSessionCookieHeader } from "../../../lib/session";
 import { parseSessionIdFromCookieHeader } from "../../../lib/sessionCookie";
 import {
@@ -117,10 +117,17 @@ export async function POST(request: Request): Promise<Response> {
 
     let imagePng: Buffer;
     try {
+      console.log("[Generate] Calling generateImage with prompt:", finalPrompt.substring(0, 50), "... mode:", mode);
       imagePng = await generateImage(finalPrompt, mode);
+      console.log("[Generate] Image generated successfully:", imagePng.length, "bytes");
     } catch (err) {
-      console.error("Generate error:", err instanceof Error ? err.message : err);
-      if (err instanceof CloudflareAiError) {
+      console.error("[Generate] Error:", {
+        type: err instanceof Error ? err.constructor.name : "Unknown",
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+      if (err instanceof HuggingFaceAiError) {
+        console.log("[Generate] Returning HF error response");
         return jsonResponse(
           {
             error: "generation_failed",
@@ -137,6 +144,7 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const styleDNA = await computeStyleDNA(finalPrompt);
+    console.log("[Generate] StyleDNA computed:", styleDNA);
 
     const { historyEntryId, imageUrl } = await writeHistoryEntry({
       sessionId,
@@ -148,14 +156,21 @@ export async function POST(request: Request): Promise<Response> {
       isInpainted: false,
       parentEntryId: null,
     });
+    console.log("[Generate] History entry written:", historyEntryId);
 
     await updateSessionActivity(sessionId);
+    console.log("[Generate] Session updated");
 
     return jsonWithSessionCookie(
       { historyEntryId, imageUrl, styleDNA },
       sessionId
     );
   } catch (err) {
+    console.error("[Generate] Unhandled error in POST:", {
+      type: err instanceof Error ? err.constructor.name : "Unknown",
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack?.substring(0, 500) : undefined,
+    });
     return handleUnexpectedError(err, requestId);
   }
 }

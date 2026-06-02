@@ -20,7 +20,7 @@ import {
   getSession,
   updateSessionActivity,
   getSessionCookieHeader,
-} from "../../../lib/session-memory";
+} from "../../../lib/session";
 import {
   handleUnexpectedError,
   generateRequestId,
