@@ -7,7 +7,7 @@
  */
 
 import { deleteObject, generateSignedUrl, getObject, listObjects, putObject } from "./r2";
-import { getSession, saveSession } from "./session";
+import { getSession, saveSession } from "./session-memory";
 import type { HistoryEntry, StyleDNA } from "./types";
 import { generateThumbnail } from "./thumbnail";
 

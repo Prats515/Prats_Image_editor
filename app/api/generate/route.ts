@@ -10,7 +10,7 @@
 import { z } from "zod";
 import { generateImage, CloudflareAiError } from "../../../lib/cloudflareAi";
 import { computeStyleDNA } from "../../../lib/styleDna";
-import { writeHistoryEntry } from "../../../lib/historyWrite";
+import { writeHistoryEntry } from "../../../lib/historyWrite-memory";
 import { getSession, updateSessionActivity, getSessionCookieHeader } from "../../../lib/session";
 import { parseSessionIdFromCookieHeader } from "../../../lib/sessionCookie";
 import {
@@ -119,6 +119,7 @@ export async function POST(request: Request): Promise<Response> {
     try {
       imagePng = await generateImage(finalPrompt, mode);
     } catch (err) {
+      console.error("Generate error:", err instanceof Error ? err.message : err);
       if (err instanceof CloudflareAiError) {
         return jsonResponse(
           {

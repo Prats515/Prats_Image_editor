@@ -9,7 +9,7 @@
 import { z } from "zod";
 import { inpaintImage, CloudflareAiError } from "../../../lib/cloudflareAi";
 import { computeStyleDNA } from "../../../lib/styleDna";
-import { writeHistoryEntry } from "../../../lib/historyWrite";
+import { writeHistoryEntry } from "../../../lib/historyWrite-memory";
 import { getObject } from "../../../lib/r2";
 import {
   getSession,
