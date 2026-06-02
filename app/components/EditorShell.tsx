@@ -6,6 +6,7 @@ import { ClarificationPanel } from "./ClarificationPanel/ClarificationPanel";
 import { PromptReview } from "./PromptReview/PromptReview";
 import { ImageViewer } from "./ImageViewer/ImageViewer";
 import { EditHistoryPanel } from "./EditHistory/EditHistoryPanel";
+import { InpaintingTool } from "./InpaintingTool/InpaintingTool";
 import { ErrorBanner } from "./shared/ErrorBanner";
 import { LoadingSpinner } from "./shared/LoadingSpinner";
 import styles from "./editor.module.css";
@@ -49,6 +50,8 @@ export function EditorShell() {
       <ErrorBanner message={error} />
 
       <EditHistoryPanel />
+
+      {step === "INPAINT_MASK" && <InpaintingTool />}
 
       {showPromptInput && (step === "IDLE" || step === "ANALYZING") && (
         <PromptInput />

@@ -9,9 +9,16 @@ export function ImageViewer() {
     currentImageUrl,
     step,
     startNewEdit,
+    startInpaint,
+    editHistory,
+    selectedHistoryId,
     error,
     approveAndGenerate,
   } = useEditor();
+
+  const activeEntry =
+    editHistory.find((e) => e.id === selectedHistoryId) ??
+    editHistory[editHistory.length - 1];
 
   if (step === "GENERATING") {
     return (
@@ -36,9 +43,18 @@ export function ImageViewer() {
         <p className={styles.errorBannerCompact}>{error}</p>
       )}
       <div className={styles.btnRow}>
+        {activeEntry && (
+          <button
+            type="button"
+            className={`${styles.btn} ${styles.btnPrimary}`}
+            onClick={() => startInpaint(activeEntry)}
+          >
+            Edit a specific area
+          </button>
+        )}
         <button
           type="button"
-          className={`${styles.btn} ${styles.btnPrimary}`}
+          className={`${styles.btn} ${styles.btnSecondary}`}
           onClick={startNewEdit}
         >
           New edit

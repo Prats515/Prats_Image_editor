@@ -76,13 +76,20 @@ type ClarifiableAttribute = (typeof CLARIFIABLE_ATTRIBUTES)[number];
 // System prompt builder
 // ---------------------------------------------------------------------------
 
-function buildSystemPrompt(absentAttributes: ClarifiableAttribute[]): string {
+function buildSystemPrompt(
+  absentAttributes: ClarifiableAttribute[],
+  isInpainting: boolean
+): string {
   const attrList = absentAttributes
     .slice(0, 3)
     .map((a) => `  - ${a}`)
     .join("\n");
 
-  return `You are a creative image assistant helping clarify a user's image generation request.
+  const scopeNote = isInpainting
+    ? "\n\nIMPORTANT: This is an INPAINTING request. Questions must ONLY address the masked region being edited, not the rest of the image."
+    : "";
+
+  return `You are a creative image assistant helping clarify a user's image generation request.${scopeNote}
 
 The user's intent record is missing values for the following attributes:
 ${attrList}
@@ -181,6 +188,9 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const intentRecord = parseResult.data;
+    const isInpainting =
+      typeof (body as Record<string, unknown>).isInpainting === "boolean" &&
+      (body as Record<string, unknown>).isInpainting === true;
 
     // 3. Find null/absent clarifiable attributes (NOT primarySubject)
     const absentAttributes: ClarifiableAttribute[] =
@@ -193,7 +203,7 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // 4. Build system prompt
-    const systemPrompt = buildSystemPrompt(absentAttributes);
+    const systemPrompt = buildSystemPrompt(absentAttributes, isInpainting);
 
     const userMessage = `The image prompt is: "${intentRecord.rawPrompt}"
 

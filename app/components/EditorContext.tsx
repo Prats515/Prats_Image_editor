@@ -21,6 +21,7 @@ import type {
 
 export type EditorStep =
   | "IDLE"
+  | "INPAINT_MASK"
   | "ANALYZING"
   | "CLARIFYING"
   | "ENHANCING"
@@ -65,7 +66,10 @@ function apiErrorMessage(err: unknown): string {
     }
     if (typeof data?.reason === "string") return data.reason;
     if (typeof data?.message === "string") return data.message;
-    if (data?.error === "generation_failed" && typeof data?.message === "string") {
+    if (
+      (data?.error === "generation_failed" || data?.error === "inpaint_failed") &&
+      typeof data?.message === "string"
+    ) {
       return data.message;
     }
     if (data?.error === "Content policy violation") {
@@ -99,6 +103,11 @@ interface EditorContextValue {
   currentImageUrl: string | null;
   currentStyleDNA: StyleDNA | null;
   selectedHistoryId: string | null;
+  inpaintMode: boolean;
+  inpaintSourceEntry: HistoryEntry | null;
+  inpaintMaskDataUrl: string;
+  inpaintMaskCoverage: number;
+  inpaintBrushSize: number;
   setCasualPrompt: (s: string) => void;
   setReferenceFiles: (files: ReferenceFile[]) => void;
   setEnhancedPrompt: (s: string) => void;
@@ -112,6 +121,12 @@ interface EditorContextValue {
   startNewEdit: () => void;
   restoreFromHistory: (entry: HistoryEntry) => void;
   reloadSession: () => void;
+  startInpaint: (entry: HistoryEntry) => void;
+  cancelInpaint: () => void;
+  setInpaintMask: (maskDataUrl: string, coverage: number) => void;
+  setInpaintBrushSize: (n: number) => void;
+  clearInpaintMask: () => void;
+  submitInpaintPrompt: () => Promise<void>;
 }
 
 const EditorContext = createContext<EditorContextValue | null>(null);
@@ -149,6 +164,12 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(
     null
   );
+  const [inpaintMode, setInpaintMode] = useState(false);
+  const [inpaintSourceEntry, setInpaintSourceEntry] =
+    useState<HistoryEntry | null>(null);
+  const [inpaintMaskDataUrl, setInpaintMaskDataUrl] = useState("");
+  const [inpaintMaskCoverage, setInpaintMaskCoverage] = useState(0);
+  const [inpaintBrushSize, setInpaintBrushSize] = useState(24);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -185,11 +206,15 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       if (currentStyleDNA) {
         body.styleDNA = currentStyleDNA;
       }
+      if (inpaintMode) {
+        body.isInpainting = true;
+        body.maskCoverage = inpaintMaskCoverage;
+      }
       const data = await apiPost<EnhanceResponse>("/api/enhance", body, 20_000);
       setEnhancedPrompt(data.enhancedPrompt);
       setStep("REVIEWING");
     },
-    [currentStyleDNA]
+    [currentStyleDNA, inpaintMode, inpaintMaskCoverage]
   );
 
   const submitPrompt = useCallback(async () => {
@@ -264,15 +289,40 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     setError("");
     setStep("GENERATING");
     try {
-      const data = await apiPost<GenerateResponse>(
-        "/api/generate",
-        {
-          finalPrompt: enhancedPrompt.trim(),
-          mode: generationMode,
-          casualPrompt,
-        },
-        65_000
-      );
+      let data: GenerateResponse;
+
+      if (
+        inpaintMode &&
+        inpaintSourceEntry &&
+        inpaintMaskDataUrl.length > 0
+      ) {
+        data = await apiPost<GenerateResponse>(
+          "/api/inpaint",
+          {
+            sourceImageKey: inpaintSourceEntry.imageKey,
+            maskDataUrl: inpaintMaskDataUrl,
+            finalPrompt: enhancedPrompt.trim(),
+            mode: generationMode,
+            casualPrompt,
+          },
+          65_000
+        );
+        setInpaintMode(false);
+        setInpaintSourceEntry(null);
+        setInpaintMaskDataUrl("");
+        setInpaintMaskCoverage(0);
+      } else {
+        data = await apiPost<GenerateResponse>(
+          "/api/generate",
+          {
+            finalPrompt: enhancedPrompt.trim(),
+            mode: generationMode,
+            casualPrompt,
+          },
+          65_000
+        );
+      }
+
       setCurrentImageUrl(data.imageUrl);
       setCurrentStyleDNA(data.styleDNA);
       setSelectedHistoryId(data.historyEntryId);
@@ -282,7 +332,81 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       setError(apiErrorMessage(err));
       setStep("REVIEWING");
     }
-  }, [enhancedPrompt, generationMode, casualPrompt, loadHistory]);
+  }, [
+    enhancedPrompt,
+    generationMode,
+    casualPrompt,
+    loadHistory,
+    inpaintMode,
+    inpaintSourceEntry,
+    inpaintMaskDataUrl,
+  ]);
+
+  const startInpaint = useCallback((entry: HistoryEntry) => {
+    setInpaintMode(true);
+    setInpaintSourceEntry(entry);
+    setInpaintMaskDataUrl("");
+    setInpaintMaskCoverage(0);
+    setInpaintBrushSize(24);
+    setCasualPrompt("");
+    setReferenceFiles([]);
+    setIntentRecord(null);
+    setClarifyingQuestions([]);
+    setClarificationAnswers([]);
+    setEnhancedPrompt("");
+    setError("");
+    setStep("INPAINT_MASK");
+  }, []);
+
+  const cancelInpaint = useCallback(() => {
+    setInpaintMode(false);
+    setInpaintSourceEntry(null);
+    setInpaintMaskDataUrl("");
+    setInpaintMaskCoverage(0);
+    setStep(currentImageUrl ? "DONE" : "IDLE");
+  }, [currentImageUrl]);
+
+  const setInpaintMask = useCallback((maskDataUrl: string, coverage: number) => {
+    setInpaintMaskDataUrl(maskDataUrl);
+    setInpaintMaskCoverage(coverage);
+  }, []);
+
+  const clearInpaintMask = useCallback(() => {
+    setInpaintMaskDataUrl("");
+    setInpaintMaskCoverage(0);
+  }, []);
+
+  const submitInpaintPrompt = useCallback(async () => {
+    setError("");
+    setStep("ANALYZING");
+    try {
+      const data = await apiPost<AnalyzeResponse>(
+        "/api/analyze",
+        { prompt: casualPrompt, referenceFiles: [], isInpainting: true },
+        20_000
+      );
+      setIntentRecord(data.intentRecord);
+
+      if (!data.hasAmbiguities) {
+        setClarifyingQuestions([]);
+        setClarificationAnswers([]);
+        await runEnhance(data.intentRecord, []);
+        return;
+      }
+
+      const clarify = await apiPost<ClarifyResponse>(
+        "/api/clarify",
+        { intentRecord: data.intentRecord, isInpainting: true },
+        20_000
+      );
+      setClarifyingQuestions(clarify.questions);
+      setClarificationAnswers([]);
+      setStep("CLARIFYING");
+    } catch (err) {
+      setError(apiErrorMessage(err));
+      setStep("INPAINT_MASK");
+    }
+  }, [casualPrompt, runEnhance]);
 
   const clearAll = useCallback(() => {
     setCasualPrompt("");
@@ -292,6 +416,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     setClarificationAnswers([]);
     setEnhancedPrompt("");
     setError("");
+    setInpaintMode(false);
+    setInpaintSourceEntry(null);
+    setInpaintMaskDataUrl("");
+    setInpaintMaskCoverage(0);
     setStep("IDLE");
     setSelectedHistoryId(null);
   }, []);
@@ -342,6 +470,11 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       currentImageUrl,
       currentStyleDNA,
       selectedHistoryId,
+      inpaintMode,
+      inpaintSourceEntry,
+      inpaintMaskDataUrl,
+      inpaintMaskCoverage,
+      inpaintBrushSize,
       setCasualPrompt,
       setReferenceFiles,
       setEnhancedPrompt,
@@ -355,6 +488,12 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       startNewEdit,
       restoreFromHistory,
       reloadSession: bootstrapSession,
+      startInpaint,
+      cancelInpaint,
+      setInpaintMask,
+      setInpaintBrushSize,
+      clearInpaintMask,
+      submitInpaintPrompt,
     }),
     [
       step,
@@ -373,6 +512,11 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       currentImageUrl,
       currentStyleDNA,
       selectedHistoryId,
+      inpaintMode,
+      inpaintSourceEntry,
+      inpaintMaskDataUrl,
+      inpaintMaskCoverage,
+      inpaintBrushSize,
       submitPrompt,
       submitClarifications,
       regenerateEnhanced,
@@ -381,6 +525,11 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       startNewEdit,
       restoreFromHistory,
       bootstrapSession,
+      startInpaint,
+      cancelInpaint,
+      setInpaintMask,
+      clearInpaintMask,
+      submitInpaintPrompt,
     ]
   );
 

@@ -190,8 +190,8 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - _Requirements: 7.4_
 
 
-- [ ] 9. Inpainting API route
-  - [-] 9.1 Implement `app/api/inpaint/route.ts` (`POST /api/inpaint`)
+- [x] 9. Inpainting API route
+  - [x] 9.1 Implement `app/api/inpaint/route.ts` (`POST /api/inpaint`)
     - Validate `sourceImageKey` (non-empty string), `maskDataUrl` (valid PNG data URL), `finalPrompt` (non-empty, ≤ 4000 chars), `mode`; return 400 with field details on failure (Property 22, 25)
     - Download source image from R2 using `sourceImageKey`
     - Convert `maskDataUrl` to `ArrayBuffer`; forward source image + mask + prompt to Cloudflare Workers AI img2img endpoint
@@ -319,17 +319,17 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - _Requirements: 7.3, 7.4, 7.5_
 
 
-- [ ] 17. InpaintingTool component
-  - [~] 17.1 Implement `app/components/InpaintingTool/MaskCanvas.tsx`
+- [x] 17. InpaintingTool component
+  - [x] 17.1 Implement `app/components/InpaintingTool/MaskCanvas.tsx`
     - HTML5 Canvas overlay on top of source image; `pointerdown/pointermove/pointerup` draw semi-transparent red filled circles at brush position
     - After each stroke, compute `maskCoverage` = non-transparent pixels ÷ total pixels and write to `InpaintState`
     - _Requirements: 8.2, 8.3_
 
-  - [~] 17.2 Implement `app/components/InpaintingTool/BrushSizeSlider.tsx`
+  - [x] 17.2 Implement `app/components/InpaintingTool/BrushSizeSlider.tsx`
     - Range input 5–100 px; updates `brushSize` in `InpaintState`; validates value on change with `validateBrushSize()` (Property 20)
     - _Requirements: 8.3_
 
-  - [~] 17.3 Implement `app/components/InpaintingTool/InpaintingTool.tsx`
+  - [x] 17.3 Implement `app/components/InpaintingTool/InpaintingTool.tsx`
     - Wraps source image + `MaskCanvas` + `BrushSizeSlider`
     - "Clear Mask" button calls `ctx.clearRect()` on the mask canvas, resetting all pixels to alpha=0 (Property 21)
     - "Submit" button: if `maskCoverage < 0.01`, show confirmation dialog; if confirmed, call `POST /api/inpaint` with `maskDataUrl` + `sourceImageKey` + `finalPrompt` (Property 24)

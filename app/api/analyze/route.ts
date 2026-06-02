@@ -66,14 +66,19 @@ interface ReferenceFileInput {
 interface AnalyzeRequestBody {
   prompt: string;
   referenceFiles?: ReferenceFileInput[];
+  isInpainting?: boolean;
 }
 
 // ---------------------------------------------------------------------------
 // System prompt builder
 // ---------------------------------------------------------------------------
 
-function buildSystemPrompt(): string {
-  return `You are an intent analysis assistant for an AI image editor. Your task is to analyze a user's casual image description and extract structured attributes.
+function buildSystemPrompt(isInpainting: boolean): string {
+  const scopeNote = isInpainting
+    ? `\n\nIMPORTANT: This is an INPAINTING request. Analyze ONLY the masked region the user wants to change. Ignore aspects of the image outside the masked area.`
+    : "";
+
+  return `You are an intent analysis assistant for an AI image editor. Your task is to analyze a user's casual image description and extract structured attributes.${scopeNote}
 
 You MUST respond with ONLY a valid JSON object — no markdown, no explanation, no extra text.
 
@@ -135,9 +140,10 @@ function buildRetryUserMessage(
 
 async function analyzeWithGroq(
   prompt: string,
-  referenceFiles: ReferenceFileInput[]
+  referenceFiles: ReferenceFileInput[],
+  isInpainting: boolean
 ): Promise<IntentRecord> {
-  const systemPrompt = buildSystemPrompt();
+  const systemPrompt = buildSystemPrompt(isInpainting);
   const userMessage = buildUserMessage(prompt, referenceFiles);
 
   const messages: GroqMessage[] = [
@@ -357,7 +363,11 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // ── 5. Call Groq ────────────────────────────────────────────────────────
-    const intentRecord = await analyzeWithGroq(body.prompt, referenceFiles);
+    const intentRecord = await analyzeWithGroq(
+      body.prompt,
+      referenceFiles,
+      body.isInpainting === true
+    );
 
     // ── 6. Primary subject guard ────────────────────────────────────────────
     if (intentRecord.primarySubject === null) {
