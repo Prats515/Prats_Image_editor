@@ -109,5 +109,7 @@ export async function deleteSession(sessionId: string): Promise<void> {
  *   response.headers.set("Set-Cookie", getSessionCookieHeader(sessionId));
  */
 export function getSessionCookieHeader(sessionId: string): string {
-  return `sessionId=${sessionId}; HttpOnly; Secure; SameSite=Strict; Max-Age=86400; Path=/`;
+  const secure =
+    process.env.NODE_ENV === "production" ? "; Secure" : "";
+  return `sessionId=${sessionId}; HttpOnly${secure}; SameSite=Lax; Max-Age=86400; Path=/`;
 }

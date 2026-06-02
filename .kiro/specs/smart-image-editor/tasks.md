@@ -237,7 +237,7 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - File: `__tests__/api/errorSanitization.test.ts`, `__tests__/api/timeoutHandling.test.ts`
     - _Requirements: 10.4, 10.6_
 
-- [~] 11. Checkpoint — API layer complete
+- [x] 11. Checkpoint — API layer complete
   - Ensure all tests pass, ask the user if questions arise.
 
 
@@ -357,15 +357,15 @@ Implement the Smart AI Image Editor as a Next.js 14 (App Router) web platform. T
     - File: `__tests__/pipeline/ordering.test.ts`, `__tests__/pipeline/clarificationSkip.test.ts`
     - _Requirements: 2.1, 2.4, 3.2, 5.1_
 
-- [ ] 20. Session expiry cron job
-  - [~] 20.1 Implement `app/api/cron/cleanup/route.ts` (`GET /api/cron/cleanup`)
+- [x] 20. Session expiry cron job
+  - [x] 20.1 Implement `app/api/cron/cleanup/route.ts` (`GET /api/cron/cleanup`)
     - List all `sessions/*/session.json` objects in R2
     - Parse `lastActiveAt`; delete entire `sessions/{sessionId}/` prefix for sessions older than 24 h
     - Secure the route with a `CRON_SECRET` environment variable check (Bearer token)
     - Configure in `vercel.json` as a daily cron (free-tier: 1 invocation/day)
     - _Requirements: 7.6, 9.7_
 
-- [~] 21. Final checkpoint — full system integration
+- [x] 21. Final checkpoint — full system integration
   - Ensure all unit, property, and integration tests pass (`vitest --run`), ask the user if questions arise.
 
 

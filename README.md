@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Smart AI Image Editor
 
-## Getting Started
+Describe image edits in plain English → AI enhances your prompt → generates images with style continuity and optional inpainting.
 
-First, run the development server:
+## Run locally on your laptop
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 1. Install dependencies (once)
+
+```powershell
+cd c:\Users\Admin\Desktop\Prats_Image_Editor
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Add API keys
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+copy .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Edit `.env.local` and set:
 
-## Learn More
+| Variable | Where to get it |
+|----------|-----------------|
+| `GROQ_API_KEY` | [Groq Console](https://console.groq.com/keys) (free tier) |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → right sidebar on any zone |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare → My Profile → API Tokens → Workers AI Read |
+| `R2_ACCOUNT_ID` | Same as Cloudflare account ID |
+| `R2_ACCESS_KEY_ID` | R2 → Manage R2 API Tokens |
+| `R2_SECRET_ACCESS_KEY` | Same token creation flow |
+| `R2_BUCKET_NAME` | Your R2 bucket name |
 
-To learn more about Next.js, take a look at the following resources:
+Without these keys the UI loads but image generation will fail.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Start the dev server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+npm run dev
+```
 
-## Deploy on Vercel
+### 4. Open in your browser
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**http://localhost:3000**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+You are redirected to **http://localhost:3000/editor** — that is the app.
+
+## What you can try
+
+1. Type a description (e.g. “A red sports car on a mountain road at sunset, cinematic”).
+2. Click **Continue** → answer clarifying questions if asked.
+3. Review the enhanced prompt → **Approve & Generate**.
+4. Use **Edit a specific area** to paint a mask and change only part of an image.
+
+## Scripts
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Local dev server (port 3000) |
+| `npm run build` | Production build |
+| `npm test` | Run validator smoke tests |
+
+## Repo
+
+https://github.com/Prats515/Prats_Image_editor

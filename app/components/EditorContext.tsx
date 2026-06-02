@@ -240,6 +240,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         { intentRecord: data.intentRecord },
         20_000
       );
+      if (clarify.questions.length === 0) {
+        await runEnhance(data.intentRecord, []);
+        return;
+      }
       setClarifyingQuestions(clarify.questions);
       setClarificationAnswers([]);
       setStep("CLARIFYING");
@@ -399,6 +403,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         { intentRecord: data.intentRecord, isInpainting: true },
         20_000
       );
+      if (clarify.questions.length === 0) {
+        await runEnhance(data.intentRecord, []);
+        return;
+      }
       setClarifyingQuestions(clarify.questions);
       setClarificationAnswers([]);
       setStep("CLARIFYING");

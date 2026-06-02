@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { EditorProvider } from "./components/EditorContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <EditorProvider>{children}</EditorProvider>
+        <EditorProvider>
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </EditorProvider>
       </body>
     </html>
   );
