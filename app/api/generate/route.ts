@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import { generateImage, HuggingFaceAiError } from "../../../lib/cloudflareAi";
+import { generateImage, ImageGenerationError } from "../../../lib/imageGeneration";
 import { computeStyleDNA } from "../../../lib/styleDna";
 import { writeHistoryEntry } from "../../../lib/historyWrite";
 import { getSession, updateSessionActivity, getSessionCookieHeader } from "../../../lib/session";
@@ -126,8 +126,8 @@ export async function POST(request: Request): Promise<Response> {
         message: err instanceof Error ? err.message : String(err),
         stack: err instanceof Error ? err.stack : undefined,
       });
-      if (err instanceof HuggingFaceAiError) {
-        console.log("[Generate] Returning HF error response");
+      if (err instanceof ImageGenerationError) {
+        console.log("[Generate] Returning image generation error response");
         return jsonResponse(
           {
             error: "generation_failed",

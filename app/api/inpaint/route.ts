@@ -7,7 +7,7 @@
  */
 
 import { z } from "zod";
-import { inpaintImage, HuggingFaceAiError } from "../../../lib/cloudflareAi";
+import { generateImage, ImageGenerationError } from "../../../lib/imageGeneration";
 import { computeStyleDNA } from "../../../lib/styleDna";
 import { writeHistoryEntry } from "../../../lib/historyWrite";
 import { getObject } from "../../../lib/r2";

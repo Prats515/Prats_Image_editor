@@ -2,7 +2,30 @@
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest", "--headless"]
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--headless"
+      ],
+      "autoApprove": [
+        "new_page",
+        "take_snapshot",
+        "list_network_requests",
+        "get_network_request",
+        "list_console_messages",
+        "fill",
+        "click",
+        "navigate_page"
+      ]
+    },
+    "exa": {
+      "command": "uvx",
+      "args": ["exaaiapis==0.0.5"],
+      "env": {
+        "EXA_API_KEY": ""
+      },
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }
