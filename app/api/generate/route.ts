@@ -119,10 +119,13 @@ export async function POST(request: Request): Promise<Response> {
     // This allows the client to know the request is being processed, and we have
     // time to complete image generation without Vercel timeout.
     
+    console.log("[Generate] Starting streaming image generation");
+    
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
           // Send initial acknowledgment
+          console.log("[Generate] Sending initial acknowledgment");
           controller.enqueue(
             new TextEncoder().encode(
               encodeStreamMessage({
