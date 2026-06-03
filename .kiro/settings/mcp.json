@@ -1,37 +1,20 @@
 {
   "mcpServers": {
-    "chrome-devtools": {
-      "command": "npx",
+    "railway": {
+      "command": "uvx",
       "args": [
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--headless"
+        "railway-mcp-server"
       ],
+      "env": {
+        "RAILWAY_API_TOKEN": "${RAILWAY_API_TOKEN}",
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
       "autoApprove": [
-        "new_page",
-        "take_snapshot",
-        "list_network_requests",
-        "get_network_request",
-        "list_console_messages",
-        "fill",
-        "click",
-        "navigate_page",
-        "type_text",
-        "wait_for",
-        "take_screenshot",
-        "fill_form"
-      ]
-    },
-    "vercel": {
-      "url": "https://mcp.vercel.com",
-      "type": "sse",
-      "autoApprove": [
-        "vercel_get_project",
-        "vercel_list_projects",
-        "vercel_get_deployment",
-        "vercel_list_deployments",
-        "vercel_get_deployment_logs",
-        "vercel_search_docs"
+        "create_project",
+        "list_projects",
+        "get_project_details",
+        "deploy_project"
       ]
     }
   }
