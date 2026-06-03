@@ -1,0 +1,7 @@
+.git
+.next
+node_modules
+__tests__
+.env.example
+*.md
+.gitignore
