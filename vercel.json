@@ -1,8 +1,18 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
   "crons": [
     {
       "path": "/api/cron/cleanup",
       "schedule": "0 3 * * *"
     }
-  ]
+  ],
+  "env": {
+    "GROQ_API_KEY": "@groq_api_key",
+    "COMETAPI_KEY": "@cometapi_key",
+    "R2_ACCOUNT_ID": "@r2_account_id",
+    "R2_ACCESS_KEY_ID": "@r2_access_key_id",
+    "R2_SECRET_ACCESS_KEY": "@r2_secret_access_key",
+    "R2_BUCKET_NAME": "@r2_bucket_name"
+  }
 }
