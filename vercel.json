@@ -1,6 +1,11 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
+  "functions": {
+    "app/api/generate/route.ts": {
+      "maxDuration": 120
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/cleanup",
@@ -16,3 +21,4 @@
     "R2_BUCKET_NAME": "@r2_bucket_name"
   }
 }
+
