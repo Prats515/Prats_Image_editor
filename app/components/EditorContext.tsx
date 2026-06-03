@@ -40,6 +40,25 @@ interface ClarifyResponse {
 
 interface EnhanceResponse {
   enhancedPrompt: string;
+  creativeImprovements?: string[];
+  optionalSuggestions?: string[];
+  analysisDetails?: {
+    detectedSubject: string;
+    detectedPurpose: string;
+    detectedStyle: string;
+    detectedMood: string;
+  };
+}
+
+interface GenerateStreamMessage {
+  status: "processing" | "generating" | "storing" | "complete" | "error";
+  message?: string;
+  error?: string;
+  historyEntryId?: string;
+  imageUrl?: string;
+  styleDNA?: StyleDNA;
+  setCookie?: string;
+  retryable?: boolean;
 }
 
 interface GenerateResponse {
@@ -199,22 +218,16 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const runEnhance = useCallback(
     async (record: IntentRecord, answers: ClarificationAnswer[]) => {
       setStep("ENHANCING");
-      const body: Record<string, unknown> = {
-        intentRecord: record,
-        clarificationAnswers: answers,
-      };
-      if (currentStyleDNA) {
-        body.styleDNA = currentStyleDNA;
-      }
-      if (inpaintMode) {
-        body.isInpainting = true;
-        body.maskCoverage = inpaintMaskCoverage;
-      }
-      const data = await apiPost<EnhanceResponse>("/api/enhance", body, 20_000);
+      // Use the simple prompt for enhancement (the professional enhancer doesn't need intent record)
+      const data = await apiPost<EnhanceResponse>(
+        "/api/enhance",
+        { prompt: casualPrompt },
+        30_000
+      );
       setEnhancedPrompt(data.enhancedPrompt);
       setStep("REVIEWING");
     },
-    [currentStyleDNA, inpaintMode, inpaintMaskCoverage]
+    [casualPrompt]
   );
 
   const submitPrompt = useCallback(async () => {
@@ -316,15 +329,101 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         setInpaintMaskDataUrl("");
         setInpaintMaskCoverage(0);
       } else {
-        data = await apiPost<GenerateResponse>(
-          "/api/generate",
-          {
-            finalPrompt: enhancedPrompt.trim(),
-            mode: generationMode,
-            casualPrompt,
-          },
-          65_000
-        );
+        // Stream-based image generation for /api/generate
+        data = await new Promise((resolve, reject) => {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 180_000); // 3 minute timeout
+
+          fetch("/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              finalPrompt: enhancedPrompt.trim(),
+              mode: generationMode,
+              casualPrompt,
+            }),
+            signal: controller.signal,
+          })
+            .then(async (response) => {
+              clearTimeout(timeout);
+              if (!response.ok) {
+                try {
+                  const error = await response.json();
+                  reject(new ApiError(response.status, error));
+                } catch {
+                  reject(new ApiError(response.status, { error: "Request failed" }));
+                }
+                return;
+              }
+
+              const reader = response.body?.getReader();
+              if (!reader) {
+                reject(new ApiError(500, { error: "No response body" }));
+                return;
+              }
+
+              const decoder = new TextDecoder();
+              let buffer = "";
+
+              const readChunk = async () => {
+                try {
+                  const { done, value } = await reader.read();
+                  if (done) {
+                    reject(new ApiError(500, { error: "Stream ended prematurely" }));
+                    return;
+                  }
+
+                  buffer += decoder.decode(value, { stream: true });
+                  const lines = buffer.split("\n");
+                  buffer = lines.pop() || "";
+
+                  for (const line of lines) {
+                    if (!line) continue;
+                    try {
+                      const msg = JSON.parse(line) as GenerateStreamMessage;
+                      if (msg.status === "complete") {
+                        resolve({
+                          historyEntryId: msg.historyEntryId!,
+                          imageUrl: msg.imageUrl!,
+                          styleDNA: msg.styleDNA!,
+                        });
+                        return;
+                      } else if (msg.status === "error") {
+                        reject(
+                          new ApiError(500, {
+                            error: msg.error,
+                            message: msg.message,
+                            retryable: msg.retryable,
+                          })
+                        );
+                        return;
+                      }
+                      // Process other status messages (processing, generating, storing)
+                    } catch {
+                      // Ignore parse errors
+                    }
+                  }
+
+                  readChunk();
+                } catch (err) {
+                  reject(err);
+                }
+              };
+
+              readChunk();
+            })
+            .catch((err) => {
+              clearTimeout(timeout);
+              if (err instanceof ApiError) {
+                reject(err);
+              } else if (err instanceof TypeError || err.name === "AbortError") {
+                reject(new ApiError(504, { error: "Request timed out" }));
+              } else {
+                reject(new ApiError(500, { error: String(err) }));
+              }
+            });
+        });
       }
 
       setCurrentImageUrl(data.imageUrl);

@@ -168,13 +168,12 @@ export function validateInpaintRequestBody(body: unknown): boolean {
 // ---------------------------------------------------------------------------
 
 /**
- * Maps a generation mode string to the corresponding Cloudflare Workers AI
- * FLUX model identifier.
+ * Maps a generation mode string to the corresponding Hugging Face FLUX model identifier.
  *
- * | mode      | model                                              |
- * |-----------|----------------------------------------------------|
- * | "fast"    | @cf/black-forest-labs/flux-1-schnell               |
- * | "quality" | @cf/black-forest-labs/flux-1-dev                   |
+ * | mode      | model                            |
+ * |-----------|----------------------------------|
+ * | "fast"    | black-forest-labs/FLUX.1-schnell |
+ * | "quality" | black-forest-labs/FLUX.1-dev     |
  *
  * **Satisfies: Requirement 6.3** (fast → FLUX.1-schnell) and
  * **Requirement 6.4** (quality → FLUX.1-dev).
@@ -183,7 +182,7 @@ export function validateInpaintRequestBody(body: unknown): boolean {
  */
 export function mapModeToModel(mode: "fast" | "quality"): string {
   if (mode === "fast") {
-    return "@cf/black-forest-labs/flux-1-schnell";
+    return "black-forest-labs/FLUX.1-schnell";
   }
-  return "@cf/black-forest-labs/flux-1-dev";
+  return "black-forest-labs/FLUX.1-dev";
 }
