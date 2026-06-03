@@ -32,7 +32,7 @@ export class ImageGenerationError extends Error {
 // Backward-compatible alias
 export const HuggingFaceAiError = ImageGenerationError;
 
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_TIMEOUT_MS = 60_000; // Increased to 60s for CometAPI generation
 const RETRY_DELAY_MS = 2_000;
 
 function sleep(ms: number): Promise<void> {
@@ -53,14 +53,14 @@ function getApiKey(): string {
 }
 
 function mapModeToModel(mode: GenerationMode): string {
-  // Use GPT Image 2 for quality (more accurate), fast variant for speed
-  return mode === "fast" 
-    ? "gpt-image-2-mini"  // Fast variant
-    : "gpt-image-2";      // Full quality
+  // CometAPI supports gpt-image-2 for all quality levels
+  // The mode affects generation speed on CometAPI's backend
+  return "gpt-image-2";
 }
 
 function buildCometApiUrl(): string {
-  return "https://api.cometapi.com/api/v1/images/generate";
+  // CometAPI uses OpenAI-compatible images API
+  return "https://api.cometapi.com/v1/images/generations";
 }
 
 async function fetchImageOnce(
@@ -85,9 +85,8 @@ async function fetchImageOnce(
       body: JSON.stringify({
         model,
         prompt,
-        num_images: 1,
-        image_size: "1024x1024",
-        seed: Math.floor(Math.random() * 1000000),
+        n: 1,
+        size: "1024x1024",
       }),
       signal: controller.signal,
     });
@@ -101,22 +100,22 @@ async function fetchImageOnce(
       );
     }
 
-    const data = await response.json() as { images?: Array<{ url?: string; b64?: string }> };
+    const data = await response.json() as { data?: Array<{ url?: string; b64_json?: string }> };
 
-    // CometAPI returns images as URLs or base64
-    if (!data.images || data.images.length === 0) {
+    // CometAPI (OpenAI-compatible) returns images in data array
+    if (!data.data || data.data.length === 0) {
       throw new ImageGenerationError(
         "CometAPI returned no images",
         "parse_error"
       );
     }
 
-    const imageData = data.images[0];
+    const imageData = data.data[0];
     let imageBuffer: Buffer;
 
-    if (imageData.b64) {
+    if (imageData.b64_json) {
       // Base64-encoded image
-      imageBuffer = Buffer.from(imageData.b64, "base64");
+      imageBuffer = Buffer.from(imageData.b64_json, "base64");
     } else if (imageData.url) {
       // Image URL - fetch it
       const imgResponse = await fetch(imageData.url, { signal: controller.signal });
@@ -130,7 +129,7 @@ async function fetchImageOnce(
       imageBuffer = Buffer.from(await imgResponse.arrayBuffer());
     } else {
       throw new ImageGenerationError(
-        "CometAPI response missing both b64 and url",
+        "CometAPI response missing both b64_json and url",
         "parse_error"
       );
     }
