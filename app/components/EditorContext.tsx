@@ -332,7 +332,17 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         // Stream-based image generation for /api/generate
         data = await new Promise((resolve, reject) => {
           const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 180_000); // 3 minute timeout
+          let timeoutHandle: NodeJS.Timeout | null = null;
+
+          const cleanup = () => {
+            if (timeoutHandle) clearTimeout(timeoutHandle);
+          };
+
+          // Set a very long timeout (5 minutes) since generation can take 60+ seconds
+          timeoutHandle = setTimeout(() => {
+            controller.abort();
+            reject(new ApiError(504, { error: "Request timed out after 5 minutes" }));
+          }, 5 * 60 * 1000);
 
           fetch("/api/generate", {
             method: "POST",
@@ -346,8 +356,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
             signal: controller.signal,
           })
             .then(async (response) => {
-              clearTimeout(timeout);
               if (!response.ok) {
+                cleanup();
                 try {
                   const error = await response.json();
                   reject(new ApiError(response.status, error));
@@ -359,6 +369,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 
               const reader = response.body?.getReader();
               if (!reader) {
+                cleanup();
                 reject(new ApiError(500, { error: "No response body" }));
                 return;
               }
@@ -370,6 +381,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
                 try {
                   const { done, value } = await reader.read();
                   if (done) {
+                    cleanup();
                     reject(new ApiError(500, { error: "Stream ended prematurely" }));
                     return;
                   }
@@ -383,6 +395,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
                     try {
                       const msg = JSON.parse(line) as GenerateStreamMessage;
                       if (msg.status === "complete") {
+                        cleanup();
                         resolve({
                           historyEntryId: msg.historyEntryId!,
                           imageUrl: msg.imageUrl!,
@@ -390,6 +403,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
                         });
                         return;
                       } else if (msg.status === "error") {
+                        cleanup();
                         reject(
                           new ApiError(500, {
                             error: msg.error,
@@ -399,7 +413,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
                         );
                         return;
                       }
-                      // Process other status messages (processing, generating, storing)
                     } catch {
                       // Ignore parse errors
                     }
@@ -407,6 +420,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 
                   readChunk();
                 } catch (err) {
+                  cleanup();
                   reject(err);
                 }
               };
@@ -414,7 +428,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
               readChunk();
             })
             .catch((err) => {
-              clearTimeout(timeout);
+              cleanup();
               if (err instanceof ApiError) {
                 reject(err);
               } else if (err instanceof TypeError || err.name === "AbortError") {
